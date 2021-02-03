@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "build": "babel src -d dist --source-maps",
-    "start": "babel-node src/app.js",
-    "test": "mocha --require @babel/register --require babel-polyfill './test'"
+    "start": "babel-node --extensions '.ts' src/app.ts",
+    "test": "mocha --require @babel/register --require babel-polyfill './test'",
+    "check-types": "tsc"
   },
   "keywords": [],
   "author": "",
@@ -22,13 +23,17 @@
     "web3": "^1.2.7"
   },
   "devDependencies": {
-    "chai": "^4.2.0",
-    "mocha": "^7.1.2",
-    "babel-polyfill": "^6.26.0",
-    "@babel/register": "^7.9.0",
     "@babel/cli": "^7.8.4",
     "@babel/core": "^7.9.6",
     "@babel/node": "^7.8.7",
-    "@babel/preset-env": "^7.9.6"
+    "@babel/plugin-proposal-class-properties": "^7.12.13",
+    "@babel/plugin-proposal-object-rest-spread": "^7.12.13",
+    "@babel/preset-env": "^7.9.6",
+    "@babel/preset-typescript": "^7.12.13",
+    "@babel/register": "^7.9.0",
+    "babel-polyfill": "^6.26.0",
+    "chai": "^4.2.0",
+    "mocha": "^7.1.2",
+    "typescript": "^4.1.3"
   }
 }
