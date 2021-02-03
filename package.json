@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "babel src -d dist --source-maps",
-    "start": "babel-node --extensions '.ts' src/app.ts",
+    "build": "babel src --out-dir lib --extensions '.ts,.tsx'",
+    "start": "babel-node --extensions '.ts' lib/app.js",
     "test": "mocha --require @babel/register --require babel-polyfill './test'",
     "check-types": "tsc"
   },
