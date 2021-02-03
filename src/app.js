@@ -1,6 +1,7 @@
 import { ChainId, Token, WETH, Fetcher, Route } from '@uniswap/sdk'
 import { setGlobals } from './globals';
 import { liquidate } from './liquidation/liquidation';
+import { getGas,gas_cost } from './utils/gas'
 import { fetchV2UnhealthyLoans } from './v2liquidation';
 require('isomorphic-fetch');
 
@@ -20,6 +21,8 @@ const DAI_MAINNET = new Token(ChainId.MAINNET, '0x6B175474E89094C44Da98b954EedeA
 const USDC_KOVAN = new Token(ChainId.KOVAN, '0xe22da380ee6B445bb8273C81944ADEB6E8450422', 6)
 const DAI_KOVAN = new Token(ChainId.KOVAN, '0xff795577d9ac8bd7d90ee22b6c1703490b6512fd', 18)
 var DAI_WETH;
+
+const GAS_USED_ESTIMATE = 1000000
 //-----
 /*
 liquidate(
@@ -36,9 +39,11 @@ delayedFetchUnhealthyLoans();
 //sleep for 1 minute before each call
 async function delayedFetchUnhealthyLoans(){
   while(1==1){
+    console.log(`gas cost ${gas_cost}`)
     console.log("fetching loans")
-    fetchV2UnhealthyLoans();
-    updateSwapPrices();
+    //fetchV2UnhealthyLoans();
+    //updateSwapPrices();
+    getGas();
     await sleep(60000);
   }
 }
