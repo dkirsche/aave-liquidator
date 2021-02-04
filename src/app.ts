@@ -1,5 +1,8 @@
-import { ChainId, Token, WETH, Fetcher, Route } from '@uniswap/sdk'
+import { ChainId, Token, WETH, Fetcher, Route, TokenAmount } from '@uniswap/sdk'
+import { useAllCommonPairs, useTradeExactIn } from './uniswap/trades.ts';
 import { setGlobals } from './globals';
+import { TOKEN_LIST } from './constants';
+
 import { liquidate } from './liquidation/liquidation';
 import { getGas,gas_cost } from './utils/gas'
 import { fetchV2UnhealthyLoans } from './v2liquidation';
@@ -16,10 +19,8 @@ const purchaseAmount = '10'
 const receiveATokens = false
 
 //Uniswap constants
-const USDC_MAINNET = new Token(ChainId.MAINNET, '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', 6)
-const DAI_MAINNET = new Token(ChainId.MAINNET, '0x6B175474E89094C44Da98b954EedeAC495271d0F', 18)
 const USDC_KOVAN = new Token(ChainId.KOVAN, '0xe22da380ee6B445bb8273C81944ADEB6E8450422', 6)
-const DAI_KOVAN = new Token(ChainId.KOVAN, '0xff795577d9ac8bd7d90ee22b6c1703490b6512fd', 18)
+const DAI_KOVAN = new Token(ChainId.KOVAN, '0xFf795577d9AC8bD7D90Ee22b6C1703490b6512FD', 18)
 var DAI_WETH;
 
 const GAS_USED_ESTIMATE = 1000000
@@ -38,12 +39,16 @@ delayedFetchUnhealthyLoans();
 //infinite loop calling fetchUnhealthyLoans
 //sleep for 1 minute before each call
 async function delayedFetchUnhealthyLoans(){
+  var crv_amount = new TokenAmount(TOKEN_LIST.CRV, 900000000000000000000)// this is the number of coins to trade
+  useTradeExactIn(crv_amount,TOKEN_LIST.AAVE)
+
+  //console.log (JSON.stringify(useTradeExactIn(dai_amount,aave), null, 2))
   while(1==1){
     console.log(`gas cost ${gas_cost}`)
     console.log("fetching loans")
     //fetchV2UnhealthyLoans();
     //updateSwapPrices();
-    getGas();
+    //getGas();
     await sleep(60000);
   }
 }

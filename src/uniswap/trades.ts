@@ -8,7 +8,7 @@ import { wrappedCurrency } from './utils/wrappedCurrency'
 
 //import { useUnsupportedTokens } from './Tokens'
 
-export function useAllCommonPairs(currencyA?: Currency, currencyB?: Currency): Pair[] {
+export async function useAllCommonPairs(currencyA?: Currency, currencyB?: Currency): Pair[] {
   const chainId = ChainId.MAINNET
 
   const bases: Token[] = chainId ? BASES_TO_CHECK_TRADES_AGAINST[chainId] : []
@@ -21,7 +21,6 @@ export function useAllCommonPairs(currencyA?: Currency, currencyB?: Currency): P
       flatMap(bases, (base): [Token, Token][] => bases.map(otherBase => [base, otherBase])).filter(
         ([t0, t1]) => t0.address !== t1.address
       )
-
   const allPairCombinations: [Token, Token][] =
     tokenA && tokenB
       ? [
@@ -52,16 +51,14 @@ export function useAllCommonPairs(currencyA?: Currency, currencyB?: Currency): P
             return true
           })
       : []
-  console.log(allPairCombinations.toString)
-  const allPairs = usePairs(allPairCombinations)
+
+  const allPairs = await usePairs(allPairCombinations)
 
   // only pass along valid pairs, non-duplicated pairs
   return Object.values(
       allPairs
-        // filter out invalid pairs
-        .filter((result): result is [PairState.EXISTS, Pair] => Boolean(result[0] === PairState.EXISTS && result[1]))
         // filter out duplicated pairs
-        .reduce<{ [pairAddress: string]: Pair }>((memo, [, curr]) => {
+        .reduce<{ [pairAddress: string]: Pair }>((memo, curr) => {
           memo[curr.liquidityToken.address] = memo[curr.liquidityToken.address] ?? curr
           return memo
         }, {})
@@ -73,11 +70,10 @@ const MAX_HOPS = 3
 /**
  * Returns the best trade for the exact amount of tokens in to the given token out
  */
-export function useTradeExactIn(currencyAmountIn?: CurrencyAmount, currencyOut?: Currency): Trade | null {
-  const allowedPairs = useAllCommonPairs(currencyAmountIn?.currency, currencyOut)
-
+export async function useTradeExactIn(currencyAmountIn?: CurrencyAmount, currencyOut?: Currency): Trade | null {
+  const allowedPairs = await useAllCommonPairs(currencyAmountIn?.currency, currencyOut)
+  console.log(`allowedPairs:${allowedPairs.length}`)
   const singleHopOnly = false
-
   if (currencyAmountIn && currencyOut && allowedPairs.length > 0) {
     if (singleHopOnly) {
       return (
@@ -96,9 +92,12 @@ export function useTradeExactIn(currencyAmountIn?: CurrencyAmount, currencyOut?:
         bestTradeSoFar = currentTrade
       }
     }
+    //console.log(`bestTradeSoFar ${JSON.stringify(bestTradeSoFar,null,2)}`)
+    console.log(`inputAmount ${bestTradeSoFar.inputAmount.toSignificant(8)}`)
+    console.log(`outputAmount ${bestTradeSoFar.outputAmount.toSignificant(8)}`)
+    console.log(`executionPrice ${bestTradeSoFar.executionPrice.toSignificant(8)}`)
     return bestTradeSoFar
   }
-
   return null
 }
 
@@ -132,24 +131,3 @@ export function useTradeExactOut(currencyIn?: Currency, currencyAmountOut?: Curr
     return null
 
 }
-/*
-export function useIsTransactionUnsupported(currencyIn?: Currency, currencyOut?: Currency): boolean {
-  const unsupportedToken: { [address: string]: Token } = useUnsupportedTokens()
-  const chainId = ChainId.MAINNET
-
-  const tokenIn = wrappedCurrency(currencyIn, chainId)
-  const tokenOut = wrappedCurrency(currencyOut, chainId)
-
-  // if unsupported list loaded & either token on list, mark as unsupported
-  if (unsupportedToken) {
-    if (tokenIn && Object.keys(unsupportedToken).includes(tokenIn.address)) {
-      return true
-    }
-    if (tokenOut && Object.keys(unsupportedToken).includes(tokenOut.address)) {
-      return true
-    }
-  }
-
-  return false
-}
-*/

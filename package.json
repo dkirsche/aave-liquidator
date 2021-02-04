@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "babel src --out-dir lib --extensions '.ts,.tsx'",
-    "start": "babel-node --extensions '.ts' lib/app.js",
+    "start": "babel-node --extensions '.ts' src/app.ts",
     "test": "mocha --require @babel/register --require babel-polyfill './test'",
     "check-types": "tsc"
   },
@@ -20,6 +20,7 @@
     "ethereum-input-data-decoder": "^0.3.0",
     "ethers": "^5.0.26",
     "isomorphic-fetch": "^3.0.0",
+    "lodash.flatmap": "^4.5.0",
     "web3": "^1.2.7"
   },
   "devDependencies": {

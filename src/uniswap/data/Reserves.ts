@@ -1,4 +1,4 @@
-import { ChainId, TokenAmount, Pair, Currency } from '@uniswap/sdk'
+import { ChainId, TokenAmount, Pair, Currency, Fetcher } from '@uniswap/sdk'
 import { abi as IUniswapV2PairABI } from '@uniswap/v2-core/build/IUniswapV2Pair.json'
 import { Interface } from '@ethersproject/abi'
 
@@ -13,53 +13,72 @@ export enum PairState {
   INVALID
 }
 
-export function usePairs(currencies: [Currency | undefined, Currency | undefined][]): [PairState, Pair | null][] {
+export async function usePairs(currencies: [Currency | undefined, Currency | undefined][]): Pair[] {
   const chainId  = ChainId.MAINNET
 
+//convert to to wrapped tokens where needed
   const tokens =
       currencies.map(([currencyA, currencyB]) => [
         wrappedCurrency(currencyA, chainId),
         wrappedCurrency(currencyB, chainId)
       ])
+//convert to pairs and get their reserves
+  const reserves = await getReserves(tokens)
+  //filter out nulls
+  const reserves_cleansed = reserves.filter(result => !!result )
+  //console.log(`results ${JSON.stringify(reserves,null,2)}`)
+  console.log(`results record count:${reserves.length}`)
+  console.log(`results record count:${reserves_cleansed.length}`)
+  return reserves_cleansed
 
-
-  const pairAddresses =
-      tokens.map(([tokenA, tokenB]) => {
-          return tokenA && tokenB && !tokenA.equals(tokenB) ? Pair.getAddress(tokenA, tokenB) : undefined
-        })
-
-
-  // see hooks when implementing this function
+// see hooks when implementing this function
   //import { useMultipleContractSingleData } from '../state/multicall/hooks'
   //const results = useMultipleContractSingleData(pairAddresses, PAIR_INTERFACE, 'getReserves')
   //todo call getReserves for all token pairs
   //return [[reserve0,reserve1],key]
-  const results =
+  //const results = getReserves(tokens)
+/*
   [{
     loading: false,
     result: {
-      reserve0:100,
-      reserve1:100
+      reserve0:0,
+      reserve1:0
     },
   }]
 
-  return results.map((result, i) => {
-    const { result: reserves, loading } = result
-    const tokenA = tokens[i][0]
-    const tokenB = tokens[i][1]
-
-    if (loading) return [PairState.LOADING, null]
-    if (!tokenA || !tokenB || tokenA.equals(tokenB)) return [PairState.INVALID, null]
-    if (!reserves) return [PairState.NOT_EXISTS, null]
-    const { reserve0, reserve1 } = reserves
-    const [token0, token1] = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA]
+  return reserves.map((pair, i) => {
+    console.log(`pair ${JSON.stringify(pair,null,2)}`)
+    const { tokenAmounts: reserves, loading } = pair
+    const token0 = pair.tokenAmounts[0]
+    const token1 = pair.tokenAmounts[1]
+    if (!pair) return [PairState.NOT_EXISTS, null]
+    if (!token0 || !token1 || token0.equals(token1)) return [PairState.INVALID, null]
     return [
       PairState.EXISTS,
-      new Pair(new TokenAmount(token0, reserve0.toString()), new TokenAmount(token1, reserve1.toString()))
+      new Pair(new TokenAmount(token0, token0.reserve0.toString()), new TokenAmount(pair.token1, pair.reserve1.toString()))
     ]
   })
+  */
 }
 
-export function usePair(tokenA?: Currency, tokenB?: Currency): [PairState, Pair | null] {
+export async function usePair(tokenA?: Currency, tokenB?: Currency): Pair[] {
   return usePairs([[tokenA, tokenB]])[0]
+}
+
+async function getReserves(tokens:[Token,Token][]): Pair[] {
+  const results = await Promise.all(tokens.map(async([tokenA, tokenB]) => {
+    if (tokenA && tokenB && tokenA.equals(tokenB)){
+      return
+    }
+    //console.log (`tokenA ${tokenA.symbol} tokenB ${tokenB.symbol}`)
+    try {
+      const pairDetails = await Fetcher.fetchPairData(tokenA, tokenB)
+      return pairDetails
+    }
+    catch(e){
+      }
+    }
+  )
+)
+  return results
 }

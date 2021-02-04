@@ -27,5 +27,4 @@ This is an integration test, and will call external resources in ropsten network
 1. Fill the data on app.js
 
 2. Execute liquidation script
-`npm run-script build`
 `npm start`
