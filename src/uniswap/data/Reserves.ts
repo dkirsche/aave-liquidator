@@ -27,8 +27,6 @@ export async function usePairs(currencies: [Currency | undefined, Currency | und
   //filter out nulls
   const reserves_cleansed = reserves.filter(result => !!result )
   //console.log(`results ${JSON.stringify(reserves,null,2)}`)
-  console.log(`results record count:${reserves.length}`)
-  console.log(`results record count:${reserves_cleansed.length}`)
   return reserves_cleansed
 
 // see hooks when implementing this function

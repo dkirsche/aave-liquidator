@@ -9,7 +9,7 @@ export const getGas = async function(){
   })
   .then(res => res.json())
   .then(res => {
-    gas_cost = res.data.rapid/1000000000
+    gas_cost = res.data.rapid //this is wei amount. to convert to Gwei divide by 1000000000
   })
   .catch((error) => {
     console.error('Error:', error);

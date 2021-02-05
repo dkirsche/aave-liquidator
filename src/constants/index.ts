@@ -26,4 +26,8 @@ export const TOKEN_LIST =
   "WETH" : new Token(ChainId.MAINNET, '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', 18, 'WETH', 'Wrapped Ether'),
   "YFI" : new Token(ChainId.MAINNET, '0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e', 18, 'YFI', 'yearn.finance'),
   "ZRX" : new Token(ChainId.MAINNET, '0xE41d2489571d322189246DaFA5ebDe1F4699F498', 18, 'ZRX', '0x'),
+  "BAL" : new Token(ChainId.MAINNET, '0xba100000625a3754423978a60c9317c58a424e3D', 18, 'BAL', 'Balancer'),
 }
+
+const USDC_KOVAN = new Token(ChainId.KOVAN, '0xe22da380ee6B445bb8273C81944ADEB6E8450422', 6)
+const DAI_KOVAN = new Token(ChainId.KOVAN, '0xFf795577d9AC8bD7D90Ee22b6C1703490b6512FD', 18)

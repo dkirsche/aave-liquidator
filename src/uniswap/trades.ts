@@ -72,7 +72,8 @@ const MAX_HOPS = 3
  */
 export async function useTradeExactIn(currencyAmountIn?: CurrencyAmount, currencyOut?: Currency): Trade | null {
   const allowedPairs = await useAllCommonPairs(currencyAmountIn?.currency, currencyOut)
-  console.log(`allowedPairs:${allowedPairs.length}`)
+  //console.log(`allowed pairs ${JSON.stringify(allowedPairs,null,2)}`)
+
   const singleHopOnly = false
   if (currencyAmountIn && currencyOut && allowedPairs.length > 0) {
     if (singleHopOnly) {
@@ -93,9 +94,9 @@ export async function useTradeExactIn(currencyAmountIn?: CurrencyAmount, currenc
       }
     }
     //console.log(`bestTradeSoFar ${JSON.stringify(bestTradeSoFar,null,2)}`)
-    console.log(`inputAmount ${bestTradeSoFar.inputAmount.toSignificant(8)}`)
-    console.log(`outputAmount ${bestTradeSoFar.outputAmount.toSignificant(8)}`)
-    console.log(`executionPrice ${bestTradeSoFar.executionPrice.toSignificant(8)}`)
+    //console.log(`inputAmount ${bestTradeSoFar.inputAmount.toSignificant(8)}`)
+    //console.log(`outputAmount ${bestTradeSoFar.outputAmount.toSignificant(8)}`)
+    //console.log(`executionPrice ${bestTradeSoFar.executionPrice.toSignificant(8)}`)
     return bestTradeSoFar
   }
   return null
@@ -129,5 +130,16 @@ export function useTradeExactOut(currencyIn?: Currency, currencyAmountOut?: Curr
       return bestTradeSoFar
     }
     return null
-
 }
+//given a path, calculate swap price
+//todo this function needs to be completed or deleted. Not currently funcioning right
+/*
+async function updateSwapPrices(){
+  const pair = await Fetcher.fetchPairData(DAI_KOVAN, WETH[DAI_KOVAN.chainId])
+  var DAI_WETH;
+  const route = new Route([pair], WETH[DAI_KOVAN.chainId])
+  DAI_WETH = route.midPrice.toSignificant(6)
+  console.log(`${DAI_WETH} DAI per WETH`) // 201.306
+  console.log(route.midPrice.invert().toSignificant(6)) // 0.00496756
+}
+*/

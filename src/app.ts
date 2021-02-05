@@ -18,13 +18,7 @@ const userLiquidated = "0x922257aefb9d47bfe36e7d72288c2cfb56457a40"
 const purchaseAmount = '10'
 const receiveATokens = false
 
-//Uniswap constants
-const USDC_KOVAN = new Token(ChainId.KOVAN, '0xe22da380ee6B445bb8273C81944ADEB6E8450422', 6)
-const DAI_KOVAN = new Token(ChainId.KOVAN, '0xFf795577d9AC8bD7D90Ee22b6C1703490b6512FD', 18)
-var DAI_WETH;
 
-const GAS_USED_ESTIMATE = 1000000
-//-----
 /*
 liquidate(
     collateralAddress,
@@ -39,18 +33,19 @@ delayedFetchUnhealthyLoans();
 //infinite loop calling fetchUnhealthyLoans
 //sleep for 1 minute before each call
 async function delayedFetchUnhealthyLoans(){
-  var crv_amount = new TokenAmount(TOKEN_LIST.CRV, 900000000000000000000)// this is the number of coins to trade
-  useTradeExactIn(crv_amount,TOKEN_LIST.AAVE)
-
-  //console.log (JSON.stringify(useTradeExactIn(dai_amount,aave), null, 2))
+  //var fromTokenAmount = new TokenAmount(TOKEN_LIST["WBTC"], 1000)// this is the number of coins to trade (should have many 0's)
+  //console.log (JSON.stringify(useTradeExactIn(fromTokenAmount,TOKEN_LIST["ZRX"]), null, 2))
+  //fetchV2UnhealthyLoans("0xfe206f90c58feb8e42474c5074de43c22da8bc35");
   while(1==1){
     console.log(`gas cost ${gas_cost}`)
     console.log("fetching loans")
-    //fetchV2UnhealthyLoans();
-    //updateSwapPrices();
-    //getGas();
+
+    fetchV2UnhealthyLoans();
+    getGas();
     await sleep(60000);
   }
+  //TODO calculate liquidation threshold daily
+
 }
 //fetch all users that have borrowed funds
 //calculate HealthFactor
@@ -138,13 +133,4 @@ function parseUsers(payload) {
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-async function updateSwapPrices(){
-  const pair = await Fetcher.fetchPairData(DAI_KOVAN, WETH[DAI_KOVAN.chainId])
-
-  const route = new Route([pair], WETH[DAI_KOVAN.chainId])
-  DAI_WETH = route.midPrice.toSignificant(6)
-  console.log(`${DAI_WETH} DAI per WETH`) // 201.306
-  console.log(route.midPrice.invert().toSignificant(6)) // 0.00496756
 }
