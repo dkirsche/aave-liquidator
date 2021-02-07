@@ -8,13 +8,13 @@ import { wrappedCurrency } from './utils/wrappedCurrency'
 
 //import { useUnsupportedTokens } from './Tokens'
 
-export async function useAllCommonPairs(currencyA?: Currency, currencyB?: Currency): Pair[] {
-  const chainId = ChainId.MAINNET
+export async function useAllCommonPairs(token1?: Token, token2?: Token): Pair[] {
+  const chainId = token1.chainId && token2.chainId  && token1.chainId == token2.chainId ? token1.chainId : undefined
 
   const bases: Token[] = chainId ? BASES_TO_CHECK_TRADES_AGAINST[chainId] : []
 
   const [tokenA, tokenB] = chainId
-    ? [wrappedCurrency(currencyA, chainId), wrappedCurrency(currencyB, chainId)]
+    ? [wrappedCurrency(token1), wrappedCurrency(token2)]
     : [undefined, undefined]
 
   const basePairs: [Token, Token][] =
@@ -70,15 +70,15 @@ const MAX_HOPS = 3
 /**
  * Returns the best trade for the exact amount of tokens in to the given token out
  */
-export async function useTradeExactIn(currencyAmountIn?: CurrencyAmount, currencyOut?: Currency): Trade | null {
-  const allowedPairs = await useAllCommonPairs(currencyAmountIn?.currency, currencyOut)
+export async function useTradeExactIn(tokenAmountIn?: TokenAmount, tokenOut?: Token): Trade | null {
+  const allowedPairs = await useAllCommonPairs(tokenAmountIn?.currency, tokenOut)
   //console.log(`allowed pairs ${JSON.stringify(allowedPairs,null,2)}`)
 
   const singleHopOnly = false
-  if (currencyAmountIn && currencyOut && allowedPairs.length > 0) {
+  if (tokenAmountIn && tokenOut && allowedPairs.length > 0) {
     if (singleHopOnly) {
       return (
-        Trade.bestTradeExactIn(allowedPairs, currencyAmountIn, currencyOut, { maxHops: 1, maxNumResults: 1 })[0] ??
+        Trade.bestTradeExactIn(allowedPairs, tokenAmountIn, tokenOut, { maxHops: 1, maxNumResults: 1 })[0] ??
         null
       )
     }
@@ -86,7 +86,7 @@ export async function useTradeExactIn(currencyAmountIn?: CurrencyAmount, currenc
     let bestTradeSoFar: Trade | null = null
     for (let i = 1; i <= MAX_HOPS; i++) {
       const currentTrade: Trade | null =
-        Trade.bestTradeExactIn(allowedPairs, currencyAmountIn, currencyOut, { maxHops: i, maxNumResults: 1 })[0] ??
+        Trade.bestTradeExactIn(allowedPairs, tokenAmountIn, tokenOut, { maxHops: i, maxNumResults: 1 })[0] ??
         null
       // if current trade is best yet, save it
       if (isTradeBetter(bestTradeSoFar, currentTrade, BETTER_TRADE_LESS_HOPS_THRESHOLD)) {
@@ -105,15 +105,15 @@ export async function useTradeExactIn(currencyAmountIn?: CurrencyAmount, currenc
 /**
  * Returns the best trade for the token in to the exact amount of token out
  */
-export function useTradeExactOut(currencyIn?: Currency, currencyAmountOut?: CurrencyAmount): Trade | null {
-  const allowedPairs = useAllCommonPairs(currencyIn, currencyAmountOut?.currency)
+export function useTradeExactOut(tokenIn?: Token, tokenAmountOut?: TokenAmount): Trade | null {
+  const allowedPairs = useAllCommonPairs(tokenIn, tokenAmountOut?.currency)
 
   const singleHopOnly = false
 
-    if (currencyIn && currencyAmountOut && allowedPairs.length > 0) {
+    if (tokenIn && tokenAmountOut && allowedPairs.length > 0) {
       if (singleHopOnly) {
         return (
-          Trade.bestTradeExactOut(allowedPairs, currencyIn, currencyAmountOut, { maxHops: 1, maxNumResults: 1 })[0] ??
+          Trade.bestTradeExactOut(allowedPairs, tokenIn, tokenAmountOut, { maxHops: 1, maxNumResults: 1 })[0] ??
           null
         )
       }
@@ -121,7 +121,7 @@ export function useTradeExactOut(currencyIn?: Currency, currencyAmountOut?: Curr
       let bestTradeSoFar: Trade | null = null
       for (let i = 1; i <= MAX_HOPS; i++) {
         const currentTrade =
-          Trade.bestTradeExactOut(allowedPairs, currencyIn, currencyAmountOut, { maxHops: i, maxNumResults: 1 })[0] ??
+          Trade.bestTradeExactOut(allowedPairs, tokenIn, tokenAmountOut, { maxHops: i, maxNumResults: 1 })[0] ??
           null
         if (isTradeBetter(bestTradeSoFar, currentTrade, BETTER_TRADE_LESS_HOPS_THRESHOLD)) {
           bestTradeSoFar = currentTrade

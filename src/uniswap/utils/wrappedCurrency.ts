@@ -1,15 +1,15 @@
 import { ChainId, Currency, CurrencyAmount, ETHER, Token, TokenAmount, WETH } from '@uniswap/sdk'
 
-export function wrappedCurrency(currency: Currency | undefined, chainId: ChainId | undefined): Token | undefined {
-  return chainId && currency === ETHER ? WETH[chainId] : currency 
+export function wrappedCurrency(token: Token | undefined, chainId: ChainId | undefined): Token | undefined {
+  return chainId && token === ETHER ? WETH[chainId] : token
 }
 
 export function wrappedCurrencyAmount(
-  currencyAmount: CurrencyAmount | undefined,
-  chainId: ChainId | undefined
+  tokenAmount: TokenAmount | undefined,
 ): TokenAmount | undefined {
-  const token = currencyAmount && chainId ? wrappedCurrency(currencyAmount.currency, chainId) : undefined
-  return token && currencyAmount ? new TokenAmount(token, currencyAmount.raw) : undefined
+
+  const token = tokenAmount && tokenAmount.chainId ? wrappedCurrency(tokenAmount.token, tokenAmount.chainId) : undefined
+  return token && tokenAmount ? new TokenAmount(token, tokenAmount.raw) : undefined
 }
 
 export function unwrappedToken(token: Token): Currency {

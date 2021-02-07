@@ -1,7 +1,6 @@
 import { ChainId, Token, WETH, Fetcher, Route, TokenAmount } from '@uniswap/sdk'
 import { useAllCommonPairs, useTradeExactIn } from './uniswap/trades.ts';
 import { setGlobals } from './globals';
-import { TOKEN_LIST } from './constants';
 
 import { liquidate } from './liquidation/liquidation';
 import { getGas,gas_cost } from './utils/gas'

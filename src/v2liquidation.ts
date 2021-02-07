@@ -1,15 +1,16 @@
-import { TOKEN_LIST } from './constants';
+import { TOKEN_LIST, APP_CHAIN_ID } from './constants';
 import { ChainId, Token, TokenAmount } from '@uniswap/sdk'
 import { useTradeExactIn } from './uniswap/trades.ts';
 import { gas_cost } from './utils/gas'
 const GAS_USED_ESTIMATE = 1000000
 const FLASH_LOAN_FEE = 0.009
 
-const healthFactorMax = 1 //liquidation can happen when less than 1
-const theGraphURL_kovan = 'https://api.thegraph.com/subgraphs/name/aave/protocol-v2-kovan'
-const theGraphURL_mainnet = 'https://api.thegraph.com/subgraphs/name/aave/protocol-v2'
-const allowedLiquidation = .5 //50% of a borrowed asset can be liquidated
 
+const theGraphURL_v2_kovan = 'https://api.thegraph.com/subgraphs/name/aave/protocol-v2-kovan'
+const theGraphURL_v2_mainnet = 'https://api.thegraph.com/subgraphs/name/aave/protocol-v2'
+const theGraphURL_v2 = APP_CHAIN_ID == ChainId.MAINNET ? theGraphURL_v2_mainnet : theGraphURL_v2_kovan
+const allowedLiquidation = .5 //50% of a borrowed asset can be liquidated
+const healthFactorMax = 1 //liquidation can happen when less than 1
 export var profit_threshold = .1 * (10**18) //in eth. A bonus below this will be ignored
 
 export const fetchV2UnhealthyLoans = async function fetchV2UnhealthyLoans(user_id){
@@ -21,8 +22,9 @@ export const fetchV2UnhealthyLoans = async function fetchV2UnhealthyLoans(user_i
     user_id_query = `id: "${user_id}",`
     maxCount = 1
   }
+  console.log(`${Date().toLocaleString()} fetching unhealthy loans}`)
   while(count < maxCount){
-  fetch(theGraphURL_mainnet, {
+  fetch(theGraphURL_v2, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ query: `
@@ -67,8 +69,10 @@ export const fetchV2UnhealthyLoans = async function fetchV2UnhealthyLoans(user_i
   })
   .then(res => res.json())
   .then(res => {
-    const loans=parseUsers(res.data);
-    liquidationProfits(loans);
+    const total_loans = res.data.users.length
+    const unhealthyLoans=parseUsers(res.data);
+    if(unhealthyLoans.length>0) liquidationProfits(unhealthyLoans)
+    if(total_loans>0) console.log(`Records:${total_loans} Unhealthy:${unhealthyLoans.length}`)
   });
   count++;
   }
@@ -76,7 +80,6 @@ export const fetchV2UnhealthyLoans = async function fetchV2UnhealthyLoans(user_i
 
 function parseUsers(payload) {
   var loans=[];
-  console.log(`Records:${payload.users.length} ${Date().toLocaleString()}`)
   payload.users.forEach((user, i) => {
     var totalBorrowed=0;
     var totalCollateral=0;
@@ -121,19 +124,14 @@ function parseUsers(payload) {
           "max_collateralBonus" : max_collateralBonus/10000,
           "max_collateralPriceInEth" : max_collateralPriceInEth
         })
-
-      var profit = max_borrowedPrincipal * allowedLiquidation * (max_collateralBonus/10000 - 1)
-      //console.log(`user_ID:${user.id} HealthFactor ${healthFactor.toFixed(2)} allowedLiquidation ${(max_borrowedPrincipal*allowedLiquidation).toFixed(2)} ${max_collateralSymbol}->${max_borrowedSymbol} bonus ${profit.toFixed(2)}` )
-      //console.log(`user_ID:${user.id} HealthFactor ${healthFactor.toFixed(2)} totalCollateralThreshold ${totalCollateralThreshold} totalBorrowed ${totalBorrowed} principalATokenBalance${principalATokenBalance}` )
     }
-
   });
+
+  //filter out loans under a threshold that we know will not be profitable (liquidation_threshold)
+  loans = loans.filter(loan => loan.max_borrowedPrincipal * allowedLiquidation * (loan.max_collateralBonus-1) * loan.max_borrowedPriceInEth / 10 ** TOKEN_LIST[loan.max_borrowedSymbol].decimals >= profit_threshold)
   return loans;
 }
 async function liquidationProfits(loans){
-  //filter out loans under a threshold that we know will not be profitable (liquidation_threshold)
-  loans = loans.filter(loan => loan.max_borrowedPrincipal * allowedLiquidation * (loan.max_collateralBonus-1) * loan.max_borrowedPriceInEth / 10 ** TOKEN_LIST[loan.max_borrowedSymbol].decimals >= profit_threshold)
-  console.log(`loans.length ${loans.length}`)
   loans.map(async (loan) => {
      liquidationProfit(loan)
      })
@@ -169,9 +167,10 @@ async function liquidationProfit(loan){
   console.log(`flashLoanAmount converted to eth plus bonus ${flashLoanAmountInEth_plusBonus}`)
   console.log(`payout in collateral Tokens ${collateralTokensFromPayout} ${loan.max_collateralSymbol}`)
   console.log(`${loan.max_borrowedSymbol} received from swap ${minimumTokensAfterSwap} ${loan.max_borrowedSymbol}`)
+  bestTrade ? showPath(bestTrade) : console.log("no path")
   console.log(`flashLoanPlusCost ${flashLoanPlusCost}`)
   console.log(`gasFee ${gasFee}`)
-  console.log(`profitInEthAfterGas ${profitInEthAfterGas}`)
+  console.log(`profitInEthAfterGas ${Number(profitInEthAfterGas)/(10 ** 18)}eth`)
   //console.log(`user_ID:${loan.user_id} HealthFactor ${loan.healthFactor.toFixed(2)} allowedLiquidation ${flashLoanAmount.toFixed(2)} ${loan.max_collateralSymbol}->${loan.max_borrowedSymbol}` )
   //console.log(`minimumTokensAfterSwap ${minimumTokensAfterSwap} flashLoanCost ${flashLoanCost} gasFee ${gasFee} profit ${profit.toFixed(2)}`)
 
@@ -187,4 +186,15 @@ function gasCostToLiquidate(){
 // multiply base and percent and return a BigInt
 function percentBigInt(base:BigInt,percent:decimal):BigInt {
   return BigInt(base * BigInt(percent * 10000) / 10000n)
+}
+function showPath(trade:Trade){
+  var pathSymbol=""
+  var pathAddress= []
+  trade.route.path.map(async (token) => {
+     pathSymbol+=token.symbol+"->"
+     pathAddress.push(token.address)
+     })
+  pathSymbol=pathSymbol.slice(0,-2)
+  console.log(`${pathSymbol} ${JSON.stringify(pathAddress)}`)
+  return [pathSymbol,pathAddress]
 }
