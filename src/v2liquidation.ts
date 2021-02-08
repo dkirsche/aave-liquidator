@@ -1,6 +1,6 @@
 import { TOKEN_LIST, APP_CHAIN_ID } from './constants';
 import { ChainId, Token, TokenAmount } from '@uniswap/sdk'
-import { useTradeExactIn } from './uniswap/trades.ts';
+import { useTradeExactIn } from './uniswap/trades';
 import { gas_cost } from './utils/gas'
 const GAS_USED_ESTIMATE = 1000000
 const FLASH_LOAN_FEE = 0.009

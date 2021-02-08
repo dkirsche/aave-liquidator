@@ -23,8 +23,15 @@ This is an integration test, and will call external resources in ropsten network
 2. Execute test
 `npm test`
 
-# Execute liquidation
+# Execute liquidation for debugging
 1. Fill the data on app.js
 
 2. Execute liquidation script
 `npm start`
+
+# Execute liquidation for debugging
+1. Fill the data on app.js
+
+2. Execute liquidation script
+`npm run build`
+`npm run start-prod`

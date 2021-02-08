@@ -4,8 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "babel src --out-dir lib --extensions '.ts,.tsx'",
+    "clean": "rm -rf lib && mkdir lib",
+    "build": "npm run clean && babel src --out-dir lib --extensions '.ts,.tsx'",
     "start": "babel-node --extensions '.ts' src/app.ts",
+    "start-prod": "NODE_ENV=production node ./lib/app.js",
     "test": "mocha --require @babel/register --require babel-polyfill './test'",
     "check-types": "tsc"
   },
