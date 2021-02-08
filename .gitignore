@@ -1,4 +1,6 @@
 /properties/kovan.properties
 /bck
 /node_modules
+/lib
 .env
+app.log
