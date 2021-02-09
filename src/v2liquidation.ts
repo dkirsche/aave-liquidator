@@ -158,21 +158,23 @@ async function liquidationProfit(loan){
   var profitInEth = profitInBorrowCurrency * BigInt(loan.max_borrowedPriceInEth) / BigInt(10 ** TOKEN_LIST[loan.max_borrowedSymbol].decimals)
   var profitInEthAfterGas = (profitInEth)  - gasFee
 
-
-  console.log("-------------------------------")
-  console.log(`user_ID:${loan.user_id}`)
-  console.log(`HealthFactor ${loan.healthFactor.toFixed(2)}`)
-  console.log(`flashLoanAmount ${flashLoanAmount} ${loan.max_borrowedSymbol}`)
-  console.log(`flashLoanAmount converted to eth ${flashLoanAmountInEth}`)
-  console.log(`flashLoanAmount converted to eth plus bonus ${flashLoanAmountInEth_plusBonus}`)
-  console.log(`payout in collateral Tokens ${collateralTokensFromPayout} ${loan.max_collateralSymbol}`)
-  console.log(`${loan.max_borrowedSymbol} received from swap ${minimumTokensAfterSwap} ${loan.max_borrowedSymbol}`)
-  bestTrade ? showPath(bestTrade) : console.log("no path")
-  console.log(`flashLoanPlusCost ${flashLoanPlusCost}`)
-  console.log(`gasFee ${gasFee}`)
-  console.log(`profitInEthAfterGas ${Number(profitInEthAfterGas)/(10 ** 18)}eth`)
-  //console.log(`user_ID:${loan.user_id} HealthFactor ${loan.healthFactor.toFixed(2)} allowedLiquidation ${flashLoanAmount.toFixed(2)} ${loan.max_collateralSymbol}->${loan.max_borrowedSymbol}` )
-  //console.log(`minimumTokensAfterSwap ${minimumTokensAfterSwap} flashLoanCost ${flashLoanCost} gasFee ${gasFee} profit ${profit.toFixed(2)}`)
+  if (profitInEthAfterGas>0)
+  {
+    console.log("-------------------------------")
+    console.log(`user_ID:${loan.user_id}`)
+    console.log(`HealthFactor ${loan.healthFactor.toFixed(2)}`)
+    console.log(`flashLoanAmount ${flashLoanAmount} ${loan.max_borrowedSymbol}`)
+    console.log(`flashLoanAmount converted to eth ${flashLoanAmountInEth}`)
+    console.log(`flashLoanAmount converted to eth plus bonus ${flashLoanAmountInEth_plusBonus}`)
+    console.log(`payout in collateral Tokens ${collateralTokensFromPayout} ${loan.max_collateralSymbol}`)
+    console.log(`${loan.max_borrowedSymbol} received from swap ${minimumTokensAfterSwap} ${loan.max_borrowedSymbol}`)
+    bestTrade ? showPath(bestTrade) : console.log("no path")
+    console.log(`flashLoanPlusCost ${flashLoanPlusCost}`)
+    console.log(`gasFee ${gasFee}`)
+    console.log(`profitInEthAfterGas ${Number(profitInEthAfterGas)/(10 ** 18)}eth`)
+  }
+    //console.log(`user_ID:${loan.user_id} HealthFactor ${loan.healthFactor.toFixed(2)} allowedLiquidation ${flashLoanAmount.toFixed(2)} ${loan.max_collateralSymbol}->${loan.max_borrowedSymbol}` )
+    //console.log(`minimumTokensAfterSwap ${minimumTokensAfterSwap} flashLoanCost ${flashLoanCost} gasFee ${gasFee} profit ${profit.toFixed(2)}`)
 
 
 
