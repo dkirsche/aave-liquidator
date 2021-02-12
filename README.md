@@ -27,10 +27,6 @@ All contracts can be found in `/contracts`
 `npm run build`
 `npm start`
 
-# Integration test
-Basic test cases have been created. A lot of work left to do with testing.
-
-`npm test`
 
 Thanks to this repo for providing a base to start with.
 https://github.com/ialberquilla/aave-liquidation
