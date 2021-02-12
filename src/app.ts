@@ -9,24 +9,18 @@ import { getGas,gas_cost } from './utils/gas'
 import { fetchV2UnhealthyLoans } from './v2liquidation';
 require('isomorphic-fetch');
 
+/*
+This is a place holder for implementing the liquidation call which would fully automate this bot
 require('dotenv').config()
 
 setGlobals();
-
-const collateralAddress = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
-const reserveAddress = "0xb36938c51c4f67e5e1112eb11916ed70a772bd75"
-const userLiquidated = "0x922257aefb9d47bfe36e7d72288c2cfb56457a40"
-const purchaseAmount = '10'
-const receiveATokens = false
-
-
-/*
 liquidate(
-    collateralAddress,
-    reserveAddress,
-    userLiquidated,
-    purchaseAmount,
-    receiveATokens
+  assetToLiquidate, //the token address of the asset that will be liquidated
+  flashAmt, //flash loan amount (number of tokens) which is exactly the amount that will be liquidated
+  collateral, //the token address of the collateral. This is the token that will be received after liquidating loans
+  userToLiquidate, //user ID of the loan that will be liquidated
+  amountOutMin, //when using uniswap this is used to make sure the swap returns a minimum number of tokens, or will revert
+  swapPath, //the path that uniswap will use to swap tokens back to original tokens
 )
 */
 delayedFetchUnhealthyLoans();
@@ -47,89 +41,6 @@ async function delayedFetchUnhealthyLoans(){
   }
   //TODO calculate liquidation threshold daily
 
-}
-//fetch all users that have borrowed funds
-//calculate HealthFactor
-//output all users with Loans that can be liquidated
-async function fetchUnhealthyLoans(){
-var count=0;
-while(count<6){
-  fetch('https://api.thegraph.com/subgraphs/name/aave/protocol-multy-raw', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query: `
-      query GET_LOANS {
-        users(first:1000, skip:${1000*count}, orderBy: id, orderDirection: desc, where: {borrowedReservesCount_gt: 0}) {
-          id
-          borrowedReservesCount
-          collateralReserve:reserves(where: {principalATokenBalance_gt: 0}) {
-            principalATokenBalance
-            principalBorrows
-            reserve{
-              usageAsCollateralEnabled
-              reserveLiquidationThreshold
-              reserveLiquidationBonus
-              borrowingEnabled
-              utilizationRate
-              symbol
-              underlyingAsset
-              price {
-                priceInEth
-              }
-              decimals
-            }
-          }
-          borrowReserve: reserves(where: {principalBorrows_gt: 0}) {
-            principalATokenBalance
-            principalBorrows
-            reserve{
-              usageAsCollateralEnabled
-              reserveLiquidationThreshold
-              borrowingEnabled
-              utilizationRate
-              symbol
-              underlyingAsset
-              price {
-                priceInEth
-              }
-              decimals
-            }
-          }
-        }
-      }`
-    }),
-  })
-  .then(res => res.json())
-  .then(res => parseUsers(res.data));
-  count++;
-  }
-}
-
-function parseUsers(payload) {
-  console.log(`Records:${payload.users.length} ${Date().toLocaleString()}`)
-  payload.users.forEach((user, i) => {
-    var totalBorrowed=0;
-    var totalCollateral=0;
-    var totalCollateralThreshold=0;
-    var borrowedSymbol;
-    var collateralSymbol;
-    user.borrowReserve.forEach((borrowReserve, i) => {
-      borrowedSymbol = borrowReserve.reserve.symbol
-      var priceInEth= borrowReserve.reserve.price.priceInEth / (10**18)
-      var principalBorrowed = borrowReserve.principalBorrows / (10**borrowReserve.reserve.decimals)
-      totalBorrowed += priceInEth * principalBorrowed
-    });
-    user.collateralReserve.forEach((collateralReserve, i) => {
-      collateralSymbol = collateralReserve.reserve.symbol
-      var priceInEth= collateralReserve.reserve.price.priceInEth / (10**18)
-      var principalATokenBalance = collateralReserve.principalATokenBalance / (10**collateralReserve.reserve.decimals)
-      totalCollateral += priceInEth * principalATokenBalance
-      totalCollateralThreshold += priceInEth * principalATokenBalance * (collateralReserve.reserve.reserveLiquidationThreshold/100)
-    });
-    var healthFactor= totalCollateralThreshold / totalBorrowed;
-    if (healthFactor<=1 && totalCollateral>1)
-      console.log(`user_ID:${user.id} HealthFactor ${healthFactor} totalCollateral ${totalCollateral} ${collateralSymbol}->${borrowedSymbol}` )
-  });
 }
 
 function sleep(ms) {

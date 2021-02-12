@@ -1,37 +1,36 @@
-# Liquidation Aave protocol example
-This repository is created only with educational purposes, it may contain errors. Use by your OWN risk
+# Aave Liquidation Bot
+* This bot will check for unhealthy loans using TheGraph
+* Calculate profits
+* Output details of unhealthy loan if its profitable to liquidate
+* Execute liquidation of the loans
 
-More info in Medium post
-* [Aave liquidation script](https://medium.com/coinmonks/creating-a-liquidation-script-for-aave-defi-protocol-ef584ad87e8f)
+## Solidity Contract
+* All contracts can be found in `/contracts`
+* Can be deployed to Kovan for testing or MAINNET
 
-# Installation instructions
+# To Do
+* Currently this script is not setup to call the contract, it must be done manually.
+* Remaining task is to automate the liquidation. This shouldn't be hard to do since the contract is already in place.
 
-1. Create the .env file
- `mv .env.template .env`
 
-2. Fill the variables in the .env file
-
-3. Install dependencies
+# To get started
+1. Install dependencies
 `npm install`
 
+2. Deploy contract
+All contracts can be found in `/contracts`
 
-# Integration test
-This is an integration test, and will call external resources in ropsten network
-
-1. Fill the test data
-
-2. Execute test
-`npm test`
-
-# Execute liquidation for debugging
-1. Fill the data on app.js
-
-2. Execute liquidation script
-`npm start`
-
-# Execute liquidation for debugging
-1. Fill the data on app.js
+# Starting the bot
+1. Specify the chain to use via APP_CHAIN_ID
 
 2. Execute liquidation script
 `npm run build`
-`npm run start-prod`
+`npm start`
+
+# Integration test
+Basic test cases have been created. A lot of work left to do with testing.
+
+`npm test`
+
+Thanks to this repo for providing a base to start with.
+https://github.com/ialberquilla/aave-liquidation

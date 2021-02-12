@@ -9,17 +9,12 @@ import "./Ownable.sol";
 import "https://github.com/sushiswap/sushiswap/blob/master/contracts/uniswapv2/interfaces/IUniswapV2Router02.sol";
 
 /*
-* A contract that executes the following logic in a single atomic transaction:
+* A contract that liquidates an aave loan using a flash loan:
 *
-*   1. Gets a batch flash loan of AAVE, DAI and LINK
-*   2. Deposits all of this flash liquidity onto the Aave V2 lending pool
-*   3. Borrows 100 LINK based on the deposited collateral
-*   4. Repays 100 LINK and unlocks the deposited collateral
-*   5. Withdrawls all of the deposited collateral (AAVE/DAI/LINK)
-*   6. Repays batch flash loan including the 9bps fee
+*   call executeFlashLoans() to begin the liquidation
 *
 */
-contract BatchFlashDemo is FlashLoanReceiverBase, Ownable {
+contract LiquidateLoan is FlashLoanReceiverBase, Ownable {
 
     ILendingPoolAddressesProvider provider;
     IUniswapV2Router02 uniswapV2Router;
@@ -101,8 +96,7 @@ contract BatchFlashDemo is FlashLoanReceiverBase, Ownable {
 
     //assumes the balance of the token is on the contract
     function swapToBarrowedAsset(address asset_from, address asset_to, uint amountOutMin, address[] memory swapPath ) public {
-        //todo - verify these direct paths are available in uniswap. might need to make this a param that is passed in by bot
-        //todo - handle eth swaps differently. need to check if eth or weth is used with liquidate.
+        
         IERC20 asset_fromToken;
         uint256 amountToTrade;
         uint deadline;
@@ -139,6 +133,14 @@ contract BatchFlashDemo is FlashLoanReceiverBase, Ownable {
 
     /*
     * This function is manually called to commence the flash loans sequence
+    * to make executing a liquidation  flexible calculations are done outside of the contract and sent via parameters here
+    * _assetToLiquidate - the token address of the asset that will be liquidated
+    * _flashAmt - flash loan amount (number of tokens) which is exactly the amount that will be liquidated
+    * _collateral - the token address of the collateral. This is the token that will be received after liquidating loans
+    * _userToLiquidate - user ID of the loan that will be liquidated
+    * _amountOutMin - when using uniswap this is used to make sure the swap returns a minimum number of tokens, or will revert
+    * _swapPath - the path that uniswap will use to swap tokens back to original tokens
+
     */
     function executeFlashLoans(address _assetToLiquidate, uint256 _flashAmt, address _collateral, address _userToLiquidate, uint256 _amountOutMin, address[] memory _swapPath) public onlyOwner {
         address receiverAddress = address(this);
@@ -157,8 +159,8 @@ contract BatchFlashDemo is FlashLoanReceiverBase, Ownable {
 
         address onBehalfOf = address(this);
         //only for testing. must remove
-        
 
+        // passing these params to executeOperation so that they can be used to liquidate the loan and perform the swap
         bytes memory params = abi.encode(_collateral, _userToLiquidate, _amountOutMin, _swapPath);
         uint16 referralCode = 0;
 

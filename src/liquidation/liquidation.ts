@@ -4,14 +4,17 @@ import {
 } from '../contracts/contractInstances'
 
 import { liquidationCall } from '../contracts/contractCalls'
-
+/*
+Modify to import the appropriate ABIs
 import ERC20ABI from '../../abi/ERC20ABI.json'
 import { approveErc20 } from '../contracts/contractCalls';
 import LendingPoolAddressesProviderABI from '../../abi/LendingPoolAddressesProvider.json'
 import LendingPoolABI from '../../abi/LendingPool.json'
+
 import { getLpCoreAddress } from '../contracts/contractInstances'
+*/
 
-
+//ToDo modify this function & params to call the LiquidateLoan contract
 export const liquidate = async (collateral, reserve, user, purchaseAmount, receiveAToken) => {
 
     //Gets the Lending pool provider contract
@@ -59,14 +62,7 @@ export const liquidate = async (collateral, reserve, user, purchaseAmount, recei
             throw Error(`Error on liquidation call: ${e.message}`)
         })
 
-    
+
     console.log(liquidate)
 
 }
-
-
-
-
-
-
-
