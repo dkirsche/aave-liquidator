@@ -158,7 +158,7 @@ async function liquidationProfit(loan){
   var profitInEth = profitInBorrowCurrency * BigInt(loan.max_borrowedPriceInEth) / BigInt(10 ** TOKEN_LIST[loan.max_borrowedSymbol].decimals)
   var profitInEthAfterGas = (profitInEth)  - gasFee
 
-  if (profitInEthAfterGas>0)
+  if (profitInEthAfterGas>0.1)
   {
     console.log("-------------------------------")
     console.log(`user_ID:${loan.user_id}`)
