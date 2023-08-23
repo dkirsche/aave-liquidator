@@ -24,49 +24,88 @@ export const fetchV2UnhealthyLoans = async function fetchV2UnhealthyLoans(user_i
   }
   console.log(`${Date().toLocaleString()} fetching unhealthy loans}`)
   while(count < maxCount){
-  fetch(theGraphURL_v2, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query: `
-      query GET_LOANS {
-        users(first:1000, skip:${1000*count}, orderBy: id, orderDirection: desc, where: {${user_id_query}borrowedReservesCount_gt: 0}) {
-          id
-          borrowedReservesCount
-          collateralReserve:reserves(where: {currentATokenBalance_gt: 0}) {
-            currentATokenBalance
-            reserve{
-              usageAsCollateralEnabled
-              reserveLiquidationThreshold
-              reserveLiquidationBonus
-              borrowingEnabled
-              utilizationRate
-              symbol
-              underlyingAsset
-              price {
-                priceInEth
+    fetch("https://aave-api-v2.aave.com/search/lone-users", {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: `
+        query GET_LOANS {
+          users(first:1000, skip:${1000*count}, orderBy: id, orderDirection: desc, where: {${user_id_query}borrowedReservesCount_gt: 0}) {
+            id
+            borrowedReservesCount
+            collateralReserve:reserves(where: {currentATokenBalance_gt: 0}) {
+              currentATokenBalance
+              reserve{
+                usageAsCollateralEnabled
+                reserveLiquidationThreshold
+                reserveLiquidationBonus
+                borrowingEnabled
+                utilizationRate
+                symbol
+                underlyingAsset
+                price
+                decimals
               }
-              decimals
+            }
+            borrowReserve: reserves(where: {currentTotalDebt_gt: 0}) {
+              currentTotalDebt
+              reserve{
+                usageAsCollateralEnabled
+                reserveLiquidationThreshold
+                borrowingEnabled
+                utilizationRate
+                symbol
+                underlyingAsset
+                price
+                decimals
+              }
             }
           }
-          borrowReserve: reserves(where: {currentTotalDebt_gt: 0}) {
-            currentTotalDebt
-            reserve{
-              usageAsCollateralEnabled
-              reserveLiquidationThreshold
-              borrowingEnabled
-              utilizationRate
-              symbol
-              underlyingAsset
-              price {
-                priceInEth
-              }
-              decimals
-            }
-          }
-        }
-      }`
-    }),
-  })
+        }`
+      }),
+    })
+  // fetch(theGraphURL_v2, {
+  //   method: 'POST',
+  //   headers: { 'Content-Type': 'application/json' },
+  //   body: JSON.stringify({ query: `
+  //     query GET_LOANS {
+  //       users(first:1000, skip:${1000*count}, orderBy: id, orderDirection: desc, where: {${user_id_query}borrowedReservesCount_gt: 0}) {
+  //         id
+  //         borrowedReservesCount
+  //         collateralReserve:reserves(where: {currentATokenBalance_gt: 0}) {
+  //           currentATokenBalance
+  //           reserve{
+  //             usageAsCollateralEnabled
+  //             reserveLiquidationThreshold
+  //             reserveLiquidationBonus
+  //             borrowingEnabled
+  //             utilizationRate
+  //             symbol
+  //             underlyingAsset
+  //             price {
+  //               priceInEth
+  //             }
+  //             decimals
+  //           }
+  //         }
+  //         borrowReserve: reserves(where: {currentTotalDebt_gt: 0}) {
+  //           currentTotalDebt
+  //           reserve{
+  //             usageAsCollateralEnabled
+  //             reserveLiquidationThreshold
+  //             borrowingEnabled
+  //             utilizationRate
+  //             symbol
+  //             underlyingAsset
+  //             price {
+  //               priceInEth
+  //             }
+  //             decimals
+  //           }
+  //         }
+  //       }
+  //     }`
+  //   }),
+  // })
   .then(res => res.json())
   .then(res => {
     const total_loans = res.data.users.length
